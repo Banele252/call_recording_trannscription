@@ -2,7 +2,7 @@
 
 ## 1. Purpose & Background
 
-Sales agents' calls are currently reviewed manually by QA staff, who listen to raw audio to check what was said, by whom, and how. This is slow, inconsistent, and does not scale as call volume grows. This project builds an automated pipeline that **transcribes sales agent call audio and identifies who spoke when (speaker diarization)**, producing a searchable, reviewable transcript for each call so QA reviewers spend their time reviewing content instead of listening to raw recordings.
+Sales agents' calls are currently reviewed manually by QA staff, who listen to raw audio to check what was said, by whom, and how. This is slow, inconsistent, and does not scale as call volume grows. This project builds an automated pipeline that **transcribes sales agent call audio and identifies who spoke when (speaker diarization)**, producing a searchable, reviewable transcript for each call so QA reviewers spend their time reviewing content instead of listening to raw recordings. testing
 
 The pipeline is built primarily on open Hugging Face models, with a specific focus on models that perform well on **South African languages**, since a meaningful share of calls are conducted partly or fully in a language other than English.
 

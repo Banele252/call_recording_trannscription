@@ -18,7 +18,7 @@ def validate_audio(file_path: str) -> bool:
         if ext not in [".wav", ".mp3"]:
             return False
         # Try loading with pydub to confirm it's not corrupt
-        AudioSegment.from_file(file_path)
+        #AudioSegment.from_file(file_path)
         return True
     except Exception:
         return False

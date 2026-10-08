@@ -1,7 +1,10 @@
 import uuid
+import requests
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 from pydub import AudioSegment
+
+BASE_URL = "https://mongoldb-dev.wonderfulsky-f9699d5e.southafricanorth.azurecontainerapps.io"  # your API host
 
 def validate_audio(file_path: str) -> Tuple[bool, Union[Dict[str, object], str]]:
     """Decode a WAV or MP3 file and return structured audio metadata or an error."""
@@ -19,18 +22,27 @@ def validate_audio(file_path: str) -> Tuple[bool, Union[Dict[str, object], str]]
         return False, f"Could not decode audio: {error}"
 
     audio_metadata = {
-        "duration_seconds": round(len(audio) / 1000, 3),
-        "file_type": file_type,
-        "sample_rate_hz": audio.frame_rate,
-        "channels": audio.channels,
-        "bit_depth": audio.sample_width * 8,
-        "frame_count": int(audio.frame_count()),
-        "file_size_bytes": Path(file_path).stat().st_size,
-    }
+    "duration_seconds": round(len(audio) / 1000, 3),
+    "file_type": file_type,
+    "sample_rate_hz": audio.frame_rate,
+    "channels": audio.channels,
+    "bit_depth": audio.sample_width * 8,
+    "frame_count": int(audio.frame_count()),
+    "file_size_bytes": Path(file_path).stat().st_size,
+}
+
     return True, audio_metadata
 
+def upload_to_api(file_path: str, metadata: Dict[str, object]) -> Dict[str, object]:
+    """Upload audio file and metadata to the Audio Ingestion API."""
+    with open(file_path, "rb") as f:
+        files = {"file": f}
+        data = metadata
+        response = requests.post(f"{BASE_URL}/audio", files=files, data=data)
+    return response.json()
+
 def upload_batch(files: List[str]):
-    """Queue audio files with metadata extracted from each recording."""
+    """Validate and upload audio files to the API."""
     results = []
     for file_path in files:
         is_valid, audio_metadata = validate_audio(file_path)
@@ -38,22 +50,19 @@ def upload_batch(files: List[str]):
             results.append({"file": file_path, "status": "error", "reason": audio_metadata})
             continue
 
-        queue_id = str(uuid.uuid4())
+        api_response = upload_to_api(file_path, audio_metadata)
         results.append({
             "file": file_path,
-            "status": "queued",
-            "queue_id": queue_id,
+            "status": "uploaded",
+            "api_response": api_response,
             "metadata": audio_metadata,
         })
     return results
 
 # 🔄 Always look for an 'audio' folder next to this script
 audio_dir = Path(__file__).parent / "audio"
-
-# Ensure the folder exists
 audio_dir.mkdir(exist_ok=True)
 
-# Collect all supported audio files
 files = sorted(
     str(file_path)
     for file_path in audio_dir.glob("*")
